@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: output-cm
+  namespace: stocks
+data:
+  stockdata_app_url: "http://stockdata-service:5000" 
+  outlier_app_url: "http://outlier-service:5000"
