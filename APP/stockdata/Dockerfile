@@ -1,15 +1,14 @@
+# Base image
 FROM python:3.9-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY app.py /app
 
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
+RUN pip install flask boto3
 
 EXPOSE 5000
 
-ENV bucketname=<your-bucket-name>
+ENV BUCKET_NAME="your-s3-bucket-name"
 
 CMD ["python", "app.py"]

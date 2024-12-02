@@ -22846,7 +22846,7 @@ metadata:
     app.kubernetes.io/part-of: argocd
   name: argocd-server
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
   - name: http
     port: 80
@@ -23340,7 +23340,7 @@ spec:
             secretKeyRef:
               key: auth
               name: argocd-redis
-        image: redis:7.0.15-alpine
+        image: redis:8.0.15-alpine
         imagePullPolicy: Always
         name: redis
         ports:
