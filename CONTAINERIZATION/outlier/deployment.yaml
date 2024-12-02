@@ -17,11 +17,11 @@ spec:
     spec:
       containers:
       - name: outlier
-        image: 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/outliers:2.0
+        image: 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/outliers:8.0
         ports:
         - containerPort: 5000
         env:
-        - name: stockdata_app_url
+        - name: STOCKDATA_APP_URL
           valueFrom:
             configMapKeyRef:
               name: outlier-cm    # Referring the ConfigMap for retrieving the outlier url

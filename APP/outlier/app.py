@@ -1,83 +1,88 @@
-from flask import Flask, jsonify
-import requests
-import numpy as np
-import pandas as pd
 import os
+import requests
+from flask import Flask, request, jsonify
+import numpy as np
 
 app = Flask(__name__)
 
-# URL for the first Flask application (App1)
-stockdata_app_url = os.getenv("stockdata_app_url")  
+# Enable Flask debug mode for detailed logs
+app.config["DEBUG"] = True
 
-# Helper function to fetch data from App1
-def fetch_data_from_app1(exchange_name, stock_id, params):
-    try:
-        response = requests.get(f"{stockdata_app_url}/{exchange_name}/{stock_id}/", params=params)
-        response.raise_for_status()
-        return response.json()['data']  # Extract the data field
-    except requests.exceptions.RequestException as e:
-        raise Exception(f"Error connecting to App1: {str(e)}")
+# Load the URL of the previous application from the environment variable
+STOCKDATA_APP_URL = os.getenv("STOCKDATA_APP_URL")
 
-# Helper function to calculate outliers
-def calculate_outliers(data):
+if not STOCKDATA_APP_URL:
+    raise EnvironmentError("Please set the STOCKDATA_APP_URL environment variable.")
+
+# Function to calculate deviation
+def calculate_deviation(data_points):
+    """
+    Calculate mean, standard deviation, and deviations from the mean for the data points.
+    """
     try:
-        prices = [point['Price'] for point in data]
-        mean_price = np.mean(prices)
+        prices = [float(item["price"]) for item in data_points]
+        mean = np.mean(prices)
         std_dev = np.std(prices)
 
-        threshold_upper = mean_price + 2 * std_dev
-        threshold_lower = mean_price - 2 * std_dev
+        # Log calculated mean and standard deviation
+        app.logger.debug(f"Mean: {mean}, Std Dev: {std_dev}")
 
-        outliers = []
-        for point in data:
-            deviation = point['Price'] - mean_price
-            if point['Price'] > threshold_upper or point['Price'] < threshold_lower:
-                percent_deviation = abs(deviation) / std_dev * 100
-                outliers.append({
-                    "StockID": point['StockID'],
-                    "Timestamp": point['Date'],
-                    "Actual Price": point['Price'],
-                    "Mean Price": round(mean_price, 2),
-                    "Deviation": round(deviation, 2),
-                    "% Deviation": round(percent_deviation, 2)
-                })
+        results = []
+        for item in data_points:
+            price = float(item["price"])
+            deviation_from_mean = price - mean
+            percentage_deviation = (deviation_from_mean / mean) * 100
+            is_outlier = abs(deviation_from_mean) > 2 * std_dev  # check if it's more than 2 standard deviations
 
-        return outliers
+            # Explicitly convert the boolean to integer (0/1) or string ("true"/"false")
+            results.append({
+                "date": item["date"],
+                "price": item["price"],
+                "stock_id": item["stock_id"],
+                "mean": round(mean, 2),
+                "deviation_from_mean": round(deviation_from_mean, 2),
+                "percentage_deviation": round(percentage_deviation, 2),
+                "outlier": 1 if is_outlier else 0  # Convert bool to integer (1 for True, 0 for False)
+            })
+
+        return results
+
     except Exception as e:
-        raise Exception(f"Error calculating outliers: {str(e)}")
+        app.logger.error(f"Error calculating deviation: {e}")
+        raise
 
-@app.route('/outliers/<exchange_name>/<stock_id>/', methods=['GET'])
-def get_outliers(exchange_name, stock_id):
-    # Validate query parameters
-    date_param = request.args.get('date')
-    no_of_files = request.args.get('noOfFiles', type=int)
 
-    if not date_param:
-        return jsonify({"error": "The 'date' parameter is required."}), 400
-    if not no_of_files or no_of_files < 1:
-        no_of_files = 1
-
+@app.route("/<exchange_name>/<stock_id>/<int:no_of_files>/<date>", methods=["GET"])
+def get_stock_data_with_deviation(exchange_name, stock_id, no_of_files, date):
     try:
-        # Fetch data from App1
-        params = {"date": date_param, "noOfFiles": no_of_files}
-        data = fetch_data_from_app1(exchange_name, stock_id, params)
+        # Construct the URL to call the first application
+        url = f"{STOCKDATA_APP_URL}/{exchange_name}/{stock_id}/{no_of_files}/{date}"
 
-        # Convert data to a DataFrame for easier processing
-        df = pd.DataFrame(data)
+        # Log the request being made
+        app.logger.debug(f"Requesting data from: {url}")
 
-        # Validate and parse data structure
-        if df.empty or len(df) < 30:
-            return jsonify({"error": "Insufficient data points for analysis. At least 30 data points required."}), 400
+        # Make a request to the first application
+        response = requests.get(url)
 
-        # Calculate outliers
-        outliers = calculate_outliers(data)
+        # Log response status and check for success
+        app.logger.debug(f"Response status code: {response.status_code}")
 
-        if not outliers:
-            return jsonify({"message": "No outliers found."}), 200
+        if response.status_code != 200:
+            app.logger.error(f"Failed to fetch data from the stock data application: {response.text}")
+            return jsonify({"error": "Failed to fetch data from the stock data application"}), 500
 
-        return jsonify({"outliers": outliers}), 200
+        # Get the data points from the response
+        data_points = response.json()
+
+        # Calculate deviations for the data points
+        result = calculate_deviation(data_points)
+
+        return jsonify(result), 200
+
     except Exception as e:
+        app.logger.error(f"Error in get_stock_data_with_deviation: {e}")
         return jsonify({"error": str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5001)

@@ -17,16 +17,16 @@ spec:
     spec:
       containers:
       - name: output
-        image: 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/output:2.0
+        image: 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/output:8.0
         ports:
         - containerPort: 5000
         env:
-        - name: stockdata-service
+        - name: STOCKDATA_APP_URL
           valueFrom:
             configMapKeyRef:
               name: output-cm    # Referring the ConfigMap for retrieving the stockdata url
               key: stockdata_app_url
-        - name: outlier-service
+        - name: OUTLIER_APP_URL
           valueFrom:
             configMapKeyRef:
               name: output-cm # Referring the ConfigMap for retrieving the outlier url

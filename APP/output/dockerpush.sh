@@ -3,5 +3,5 @@
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 061051251404.dkr.ecr.us-east-1.amazonaws.com
 
 docker build -t output .
-docker tag output:latest 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/output:5.0
-docker push 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/output:5.0
+docker tag output:latest 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/output:8.0
+docker push 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/output:8.0

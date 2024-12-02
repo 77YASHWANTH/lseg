@@ -1,103 +1,67 @@
-from flask import Flask, jsonify, send_file , request
+from flask import Flask, request, jsonify, send_file
+import os
 import requests
 import csv
-import os
-from io import StringIO
+import io
 
 app = Flask(__name__)
 
-# URLs for the previous applications
-DATA_APP_URL = os.getenv("stockdata-service")  # Replace with the stock data app's URL
-OUTLIER_APP_URL = os.getenv("outlier-service")  # Replace with the outlier app's URL
+# Load the URLs of the previous applications from environment variables
+STOCKDATA_APP_URL = os.getenv("STOCKDATA_APP_URL")
+OUTLIER_APP_URL = os.getenv("OUTLIER_APP_URL")
 
-def save_to_csv(data, file_name):
-    """
-    Save data to a CSV file.
-    """
-    output = StringIO()
-    writer = csv.writer(output)
-    
-    # Assuming data is a list of dictionaries
-    if data and isinstance(data, list):
-        # Write headers
-        writer.writerow(data[0].keys())
-        # Write rows
-        for row in data:
-            writer.writerow(row.values())
+if not STOCKDATA_APP_URL or not OUTLIER_APP_URL:
+    raise EnvironmentError("Please set the STOCKDATA_APP_URL and OUTLIER_APP_URL environment variables.")
 
-    # Save the output to a file
+# Function to convert data to CSV
+def convert_to_csv(data, columns):
+    """Converts a list of dicts to CSV format in memory."""
+    output = io.StringIO()
+    csv_writer = csv.DictWriter(output, fieldnames=columns)
+    csv_writer.writeheader()
+    csv_writer.writerows(data)
     output.seek(0)
-    with open(file_name, 'w') as f:
-        f.write(output.getvalue())
+    return output
 
-    output.close()
-    return file_name
-
-@app.route('/<exchange_name>/<stock_id>/', methods=['GET'])
-def get_data_csv(exchange_name, stock_id):
-    # Extract query parameters
-    date = request.args.get('date')
-    no_of_files = request.args.get('noOfFiles', type=int)
-
-    if not date:
-        return jsonify({"error": "The 'date' parameter is required."}), 400
-    if not no_of_files or no_of_files < 1:
-        no_of_files = 1
-
+@app.route("/<exchange_name>/<stock_id>/<int:no_of_files>/<date>", methods=["GET"])
+def fetch_stock_data(exchange_name, stock_id, no_of_files, date):
     try:
-        # Send request to the first application
-        response = requests.get(
-            f"{DATA_APP_URL}/{exchange_name}/{stock_id}/",
-            params={"date": date, "noOfFiles": no_of_files}
-        )
-
+        # Request data from the first app
+        url = f"{STOCKDATA_APP_URL}/{exchange_name}/{stock_id}/{no_of_files}/{date}"
+        response = requests.get(url)
+        
         if response.status_code != 200:
-            return jsonify({"error": f"Error from first app: {response.json()}"}), response.status_code
+            return jsonify({"error": "Failed to fetch data from the stock data application"}), response.status_code
+        
+        # Convert the data into CSV format
+        data = response.json()
+        columns = ['date', 'price', 'stock_id']
+        csv_output = convert_to_csv(data, columns)
 
-        data = response.json().get("data", [])
-
-        # Save data to a CSV file
-        file_name = f"{exchange_name}_{stock_id}_data.csv"
-        save_to_csv(data, file_name)
-
-        # Return the CSV file as an attachment
-        return send_file(file_name, as_attachment=True, mimetype='text/csv')
+        return send_file(csv_output, mimetype="text/csv", as_attachment=True, download_name="stock_data.csv")
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/outliers/<exchange_name>/<stock_id>/', methods=['GET'])
-def get_outliers_csv(exchange_name, stock_id):
-    # Extract query parameters
-    date = request.args.get('date')
-    no_of_files = request.args.get('noOfFiles', type=int)
-
-    if not date:
-        return jsonify({"error": "The 'date' parameter is required."}), 400
-    if not no_of_files or no_of_files < 1:
-        no_of_files = 1
-
+@app.route("/<exchange_name>/<stock_id>/outliers/<int:no_of_files>/<date>", methods=["GET"])
+def fetch_outliers_data(exchange_name, stock_id, no_of_files, date):
     try:
-        # Send request to the outlier application
-        response = requests.get(
-            f"{OUTLIER_APP_URL}/outliers/{exchange_name}/{stock_id}/",
-            params={"date": date, "noOfFiles": no_of_files}
-        )
-
+        # Request data from the second app
+        url = f"{OUTLIER_APP_URL}/{exchange_name}/{stock_id}/{no_of_files}/{date}"
+        response = requests.get(url)
+        
         if response.status_code != 200:
-            return jsonify({"error": f"Error from outlier app: {response.json()}"}), response.status_code
+            return jsonify({"error": "Failed to fetch data from the outlier application"}), response.status_code
+        
+        # Convert the outlier data into CSV format
+        outliers_data = response.json().get('data', [])
+        columns = ['stock_id', 'date', 'price', 'mean', 'deviation', 'percentage_deviation']
+        csv_output = convert_to_csv(outliers_data, columns)
 
-        data = response.json().get("outliers", [])
-
-        # Save outliers to a CSV file
-        file_name = f"{exchange_name}_{stock_id}_outliers.csv"
-        save_to_csv(data, file_name)
-
-        # Return the CSV file as an attachment
-        return send_file(file_name, as_attachment=True, mimetype='text/csv')
+        return send_file(csv_output, mimetype="text/csv", as_attachment=True, download_name="outliers_data.csv")
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5002)

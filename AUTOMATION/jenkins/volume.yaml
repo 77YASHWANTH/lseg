@@ -10,7 +10,7 @@ kind: PersistentVolume
 metadata:
   name: jenkins-pv-volume
   labels:
-    type: local
+    type: ebssc
 spec:
   storageClassName: ebs-sc
   claimRef:
@@ -20,16 +20,14 @@ spec:
     storage: 10Gi
   accessModes:
     - ReadWriteOnce
-  local:
-    path: /mnt
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: kubernetes.io/hostname
-          operator: In
-          values:
-          - ip-192-168-85-67.ec2.internal
+  # nodeAffinity:
+  #   required:
+  #     nodeSelectorTerms:
+  #     - matchExpressions:
+  #       - key: kubernetes.io/hostname
+  #         operator: In
+  #         values:
+  #         - ip-192-168-85-67.ec2.internal
 
 ---
 apiVersion: v1
@@ -43,4 +41,4 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 3Gi
+      storage: 5Gi
