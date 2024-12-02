@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: output
+  labels:
+    app: output
+  namespace: stocks
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: output
+  template:
+    metadata:
+      labels:
+        app: output
+    spec:
+      containers:
+      - name: output
+        image: 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/output:2.0
+        ports:
+        - containerPort: 5000
+        env:
+        - name: stockdata-service
+          valueFrom:
+            configMapKeyRef:
+              name: output-cm    # Referring the ConfigMap for retrieving the stockdata url
+              key: stockdata_app_url
+        - name: outlier-service
+          valueFrom:
+            configMapKeyRef:
+              name: output-cm # Referring the ConfigMap for retrieving the outlier url
+              key: outlier_app_url

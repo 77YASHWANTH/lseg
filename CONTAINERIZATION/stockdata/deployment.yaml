@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stockdata
+  namespace: stocks
+  labels:
+    app: stockdata
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stockdata
+  template:
+    metadata:
+      labels:
+        app: stockdata
+    spec:
+      containers:
+      - name: stockdata
+        image: 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/stockdata:1.0
+        ports:
+        - containerPort: 5000
+        env:
+        - name: bucketname
+          valueFrom:
+            configMapKeyRef:
+              name: stock-cm
+              key: bucketname
