@@ -1,3 +1,8 @@
+****STOCKDATAOUTLIER
+
+
+
+
 # Create Cluster
 eksctl create cluster --name=stockprice \
                       --region=us-east-1 \
@@ -31,6 +36,11 @@ eksctl create nodegroup --cluster=stockprice \
                         --alb-ingress-access \
                         --node-private-networking                       
 ```
+
+
+#Update kubeconfig file 
+
+aws eks update-kubeconfig --region us-east-1 --name stockprice
 
 # EKS Storage with EBS - Elastic Block Store
 
@@ -138,3 +148,19 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 
 ------
 kubectl apply -f ingressclass.yaml
+
+
+####Jenkins Setup####
+
+kubectl apply -f jenkins/
+
+$ k exec -it jenkins-68c8b7f55-bcvqg -- /bin/bash
+jenkins@jenkins-68c8b7f55-bcvqg:/$ cat /var/jenkins_home/secrets/initialAdminPassword
+d58000265fcd4a92b6aa6cc8a2cb74a3
+jenkins@jenkins-68c8b7f55-bcvqg:/$
+
+
+Get the dns url from the aws elb 
+kubernetes.io/service-name
+automation/jenkins-service
+
