@@ -1,4 +1,13 @@
 ****STOCKDATAOUTLIER***
+
+#REQUEST ENDPOINTS
+
+
+
+
+
+
+
 ###SETUP EKS CLUSTER FOR APPLICATION DEPLOYMENTS ####
 
 # Create Cluster
@@ -43,3 +52,13 @@ eksctl create nodegroup --cluster=stockprice \
 ```
 aws eks update-kubeconfig --region us-east-1 --name stockprice
 ```
+
+#IN KUBERNETES CLUSTER
+
+```
+cd CONTAINERIZATION
+kubectl apply -f stockdata/
+kubectl apply -f outlier/
+kubectl apply -f output/
+```
+
