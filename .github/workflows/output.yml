@@ -1,0 +1,48 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    paths:
+      - 'lseg/APP/output/**' 
+    branches:
+      - main 
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image to ECR
+    runs-on: ubuntu-latest
+
+    env:
+      ECR_REGISTRY: 061051251404.dkr.ecr.us-east-1.amazonaws.com
+      IMAGE_NAME: stockdata/output
+      AWS_REGION: us-east-1
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Log in to Amazon ECR
+      id: ecr-login
+      run: |
+        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+    - name: Build Docker Image
+      run: |
+        docker build -t $IMAGE_NAME:latest APP/output
+        docker tag $IMAGE_NAME:latest $ECR_REGISTRY/$IMAGE_NAME:latest
+
+    - name: Push Docker Image to ECR
+      run: |
+        docker push $ECR_REGISTRY/$IMAGE_NAME:latest
+
+    - name: Cleanup Docker Images
+      run: |
+        docker rmi $IMAGE_NAME:latest $ECR_REGISTRY/$IMAGE_NAME:latest
