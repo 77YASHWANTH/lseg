@@ -15,7 +15,8 @@ jobs:
 
     env:
       ECR_REGISTRY: 061051251404.dkr.ecr.us-east-1.amazonaws.com
-      IMAGE_NAME: stockdata
+      IMAGE_NAME: stockdata/stockdata
+      AWS_REGION: us-east-1
 
     steps:
     - name: Checkout Code
