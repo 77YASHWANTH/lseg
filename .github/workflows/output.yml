@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ECR_REGISTRY: 061051251404.dkr.ecr.us-east-1.amazonaws.com
       IMAGE_NAME: stockdata/output
       AWS_REGION: us-east-1
 
