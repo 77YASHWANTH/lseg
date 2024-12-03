@@ -22844,6 +22844,8 @@ metadata:
     app.kubernetes.io/component: server
     app.kubernetes.io/name: argocd-server
     app.kubernetes.io/part-of: argocd
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
   name: argocd-server
 spec:
   type: LoadBalancer
