@@ -85,4 +85,4 @@ def get_stock_data_with_deviation(exchange_name, stock_id, no_of_files, date):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001)
+    app.run(host="0.0.0.0", port=500)
