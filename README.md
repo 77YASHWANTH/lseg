@@ -66,7 +66,13 @@ aws eks update-kubeconfig --region us-east-1 --name stockprice
 
 Update the S3 bucket name in stockdata/configmap.yaml
 
-
+eksctl create iamserviceaccount \
+  --cluster=stockprice \
+  --namespace=stock \
+  --name=aws-load-balancer-controller \
+  --attach-policy-arn=arn:aws:iam::061051251404:policy/s3-stockprice-access \
+  --override-existing-serviceaccounts \
+  --approve
 ```
 cd CONTAINERIZATION
 
