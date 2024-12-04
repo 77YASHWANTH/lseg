@@ -15,7 +15,7 @@ jobs:
 
     env:
       ECR_REGISTRY: 061051251404.dkr.ecr.us-east-1.amazonaws.com
-      IMAGE_NAME: stockdata/outlier
+      IMAGE_NAME: stockdata/outliers
       AWS_REGION: us-east-1
 
     steps:
