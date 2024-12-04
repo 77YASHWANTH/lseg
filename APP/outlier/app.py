@@ -5,16 +5,13 @@ import numpy as np
 
 app = Flask(__name__)
 
-# Enable Flask debug mode for detailed logs
 app.config["DEBUG"] = True
 
-# Load the URL of the previous application from the environment variable
 STOCKDATA_APP_URL = os.getenv("STOCKDATA_APP_URL")
 
 if not STOCKDATA_APP_URL:
     raise EnvironmentError("Please set the STOCKDATA_APP_URL environment variable.")
 
-# Function to calculate deviation
 def calculate_deviation(data_points):
     """
     Calculate mean, standard deviation, and deviations from the mean for the data points.
@@ -23,9 +20,6 @@ def calculate_deviation(data_points):
         prices = [float(item["price"]) for item in data_points]
         mean = np.mean(prices)
         std_dev = np.std(prices)
-
-        # Log calculated mean and standard deviation
-        app.logger.debug(f"Mean: {mean}, Std Dev: {std_dev}")
 
         results = []
         for item in data_points:
@@ -55,23 +49,15 @@ def calculate_deviation(data_points):
 @app.route("/<exchange_name>/<stock_id>/<int:no_of_files>/<date>", methods=["GET"])
 def get_stock_data_with_deviation(exchange_name, stock_id, no_of_files, date):
     try:
-        # Construct the URL to call the first application
         url = f"{STOCKDATA_APP_URL}/{exchange_name}/{stock_id}/{no_of_files}/{date}"
-
-        # Log the request being made
-        app.logger.debug(f"Requesting data from: {url}")
 
         # Make a request to the first application
         response = requests.get(url)
-
-        # Log response status and check for success
-        app.logger.debug(f"Response status code: {response.status_code}")
 
         if response.status_code != 200:
             app.logger.error(f"Failed to fetch data from the stock data application: {response.text}")
             return jsonify({"error": "Failed to fetch data from the stock data application"}), 500
 
-        # Get the data points from the response
         data_points = response.json()
 
         # Calculate deviations for the data points
@@ -85,4 +71,4 @@ def get_stock_data_with_deviation(exchange_name, stock_id, no_of_files, date):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=500)
+    app.run(host="0.0.0.0", port=5000)
