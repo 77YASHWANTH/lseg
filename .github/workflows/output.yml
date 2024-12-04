@@ -12,8 +12,6 @@ jobs:
   build-and-push:
     name: Build and Push Docker Image to ECR
     runs-on: ubuntu-latest
-    with:
-        token: ${{secrets.PAT}}
 
     env:
       ECR_REGISTRY: 061051251404.dkr.ecr.us-east-1.amazonaws.com
