@@ -9,6 +9,6 @@ RUN pip install flask boto3
 
 EXPOSE 5000
 
-ENV BUCKET_NAME="your-s3-bucket-name"
+ENV BUCKET_NAME="s3-bucket-name"
 
 CMD ["python", "app.py"]
