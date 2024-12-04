@@ -26,3 +26,4 @@ spec:
             configMapKeyRef:
               name: stock-cm
               key: bucketname
+      serviceAccountName: s3-stockdata-access
