@@ -6,23 +6,22 @@
 2. Create Private ECR registry in AWS & UPDATE ECR_REGISTRY variable in github workflow files .github/workflows*.yml file
 3. Create Standard S3 Bucket in Aws
 4. Create kubernetes cluster 
+5. Install kubectl , eksctl cli
 
-# PIPELINE
+# ENDPOINTS
+1. To get 30 days stock price
+http://LOADBALANCERURL/EXCHANGENAME/STOCKID/NOOFFILES/DATA - 
+EX: http://LOADBALANCERURL/NASDAQ/TSLA/19/05-10-2023
 
-1.Update the AWS_ACCE
-
-#REQUEST ENDPOINTS
-
-
-/
-1
-
+2. To get standard deviation/outliers
+.http://LOADBALANCERURL/EXCHANGENAME/STOCKID/outliers/NOOFFILES/DATA - 
+EX: http://LOADBALANCERURL/NASDAQ/outliers/TSLA/19/05-10-2023
 
 
-###SETUP EKS CLUSTER FOR APPLICATION DEPLOYMENTS ####
+### SETUP EKS CLUSTER FOR APPLICATION DEPLOYMENTS ####
 
 # Create Cluster
-eksctl create cluster --name=stockprice \
+eksctl create cluster --name=stockdata \
                       --region=us-east-1 \
                       --zones=us-east-1a,us-east-1b \
                       --without-nodegroup 
@@ -36,52 +35,66 @@ eksctl get cluster
 ```
 eksctl utils associate-iam-oidc-provider \
     --region us-east-1 \
-    --cluster stockprice \
+    --cluster stockdata \
     --approve
 ```
-eksctl create nodegroup --cluster=stockprice \
+# Create Node Group
+```
+eksctl create nodegroup --cluster=stockdata \
                         --region=us-east-1 \
-                        --name=stockprice-ng-private1 \
+                        --name=stockdata-ng-public \
                         --node-type=t3.medium \
                         --nodes-min=1 \
                         --nodes-max=2 \
                         --node-volume-size=20 \
                         --ssh-access \
-                        --ssh-public-key=kube-demo \
+                        --ssh-public-key=yash \
                         --managed \
                         --asg-access \
                         --full-ecr-access \
-                        --alb-ingress-access \
-                        --node-private-networking                       
+                        --alb-ingress-access \                                         
 ```
-
-
-#Update kubeconfig file 
+# Update kubeconfig file 
 
 ```
-aws eks update-kubeconfig --region us-east-1 --name stockprice
+aws eks update-kubeconfig --region us-east-1 --name stockdata
 ```
 
-#IN KUBERNETES CLUSTER
+# IN KUBERNETES CLUSTER
 
-Update the S3 bucket name in stockdata/configmap.yaml
+1.Update the S3 bucket name in stockdata/configmap.yaml
+2.Create AWS policy (AWS) providing s3:FullAccess , get the arn
+3.Create namespace
+``` kubectl create namespace stocks ```
 
+4.Create service account to access s3 in aws from stockdata pod
+```
 eksctl create iamserviceaccount \
-  --cluster=stockprice \
-  --namespace=stock \
-  --name=aws-load-balancer-controller \
+  --cluster=stockdata \
+  --namespace=stocks \
+  --name=s3-stockdata-access \
+  --attach-policy-arn=$policy_arn \
+  --override-existing-serviceaccounts \
+  --approve
+
+```
+eksctl create iamserviceaccount \
+  --cluster=stockdata \
+  --namespace=stocks \
+  --name=s3-stockdata-access \
   --attach-policy-arn=arn:aws:iam::061051251404:policy/s3-stockprice-access \
   --override-existing-serviceaccounts \
   --approve
 ```
-cd CONTAINERIZATION
 
+5.Deploy the application 
 
-kubectl create namespace stocks
+```
+cd CONTAINERIZATION/
+
 kubectl apply -f stockdata/
 kubectl apply -f outlier/
 kubectl apply -f output/
-
 
 ```
 
