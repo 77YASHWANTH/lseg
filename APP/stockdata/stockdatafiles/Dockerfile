@@ -13,5 +13,4 @@ COPY stockdata.sh /app/stockdata.sh
 RUN chmod +x /app/stockdata.sh
 
 # Set the default entrypoint to run the script
-ENTRYPOINT ["/app/stockdata.sh"]
-CMD ["yashlseg"]
+ENTRYPOINT ["/app/stockdata.sh yashlseg"]

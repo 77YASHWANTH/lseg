@@ -18,13 +18,6 @@ spec:
       initContainers:
         - name: download-s3-files
           image: 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/stockdatafiles:latest
-          env:
-            - name: BUCKET_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: stock-cm
-                  key: bucketname 
-          args: ["$(BUCKET_NAME)"]
           volumeMounts:
             - name: stockdata-volume
               mountPath: /stockdata 
@@ -33,12 +26,6 @@ spec:
         image: 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/stockdata:latest
         ports:
         - containerPort: 5000
-        env:
-        - name: bucketname
-          valueFrom:
-            configMapKeyRef:
-              name: stock-cm
-              key: bucketname
         volumeMounts:
           - name: stockdata-volume
             mountPath: /stockdata
