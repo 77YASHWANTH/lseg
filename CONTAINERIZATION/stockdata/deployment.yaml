@@ -23,7 +23,8 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: stock-cm
-                  key: bucketname
+                  key: bucketname 
+          args: ["$(BUCKET_NAME)"]
           volumeMounts:
             - name: stockdata-volume
               mountPath: /stockdata 

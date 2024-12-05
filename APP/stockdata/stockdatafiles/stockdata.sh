@@ -8,7 +8,7 @@ fi
 
 BUCKET_NAME=$1
 
-aws s3 ls s3://$BUCKET_NAME/ /stockdata/ --recursive
+aws s3 cp s3://$BUCKET_NAME/ /stockdata/ --recursive
 
 # Check if the command was successful
 if [ $? -eq 0 ]; then
