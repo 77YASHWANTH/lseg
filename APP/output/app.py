@@ -44,8 +44,9 @@ def fetch_stock_data(exchange_name, stock_id, no_of_files, date):
         # Write data to a temporary CSV file
         columns = ["date", "price", "stock_id"]
         temp_file_path = write_to_temp_csv(data, columns)
+        download_name = f"{stock_id}_data.csv"
 
-        return send_file(temp_file_path, mimetype="text/csv", as_attachment=True, download_name="stock_data.csv")
+        return send_file(temp_file_path, mimetype="text/csv", as_attachment=True, download_name=download_name)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -73,8 +74,9 @@ def fetch_outliers_data(exchange_name, stock_id, no_of_files, date):
         # Write data to a temporary CSV file
         columns = ["stock_id", "date", "price", "mean", "deviation_from_mean", "percentage_deviation", "outlier"]
         temp_file_path = write_to_temp_csv(data, columns)
+        download_name = f"{stock_id}_outliers_data.csv"
 
-        return send_file(temp_file_path, mimetype="text/csv", as_attachment=True, download_name="outliers_data.csv")
+        return send_file(temp_file_path, mimetype="text/csv", as_attachment=True, download_name=download_name.csv")
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
