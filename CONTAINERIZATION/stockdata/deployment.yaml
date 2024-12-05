@@ -15,6 +15,18 @@ spec:
       labels:
         app: stockdata
     spec:
+      initContainers:
+        - name: download-s3-files
+          image: 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/data_stockdata:latest
+          env:
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: stock-cm
+                  key: bucketname
+          volumeMounts:
+            - name: stockdata-volume
+              mountPath: /stockdata 
       containers:
       - name: stockdata
         image: 061051251404.dkr.ecr.us-east-1.amazonaws.com/stockdata/stockdata:latest
@@ -26,4 +38,11 @@ spec:
             configMapKeyRef:
               name: stock-cm
               key: bucketname
+        volumeMounts:
+          - name: stockdata-volume
+            mountPath: /stockdata
       serviceAccountName: s3-stockdata-access
+      volumes:
+        - name: stockdata-volume
+          persistentVolumeClaim:
+            claimName: stockdata-pvc
