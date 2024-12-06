@@ -1,76 +1,118 @@
+Here’s an updated version of your `README.md` with the correct format and structure for clarity and readability:
 
+```markdown
 # INFO
-APPLICATIONS:
 
-1.STOCKDATA - Returns the parsed data from csv file in json format downloaded using ./stockdata.sh
-2.OUTLIER - Calculate & Returns the Standarddeviation,mean data in json format using the data returned from STOCKDATA application 
-3.OUTPUT - Requests the data from STOCKDATA & OUTLIER ,Returns the csv attachment
+## APPLICATIONS:
 
-### TO RUN IN LOCAL ###
+1. **STOCKDATA**  
+   Parses data from a CSV file and returns it in JSON format. The CSV file is downloaded using `./stockdata.sh`.
 
-#### PREREQUISITES
+2. **OUTLIER**  
+   Calculates and returns the standard deviation and mean data in JSON format using the data returned from the STOCKDATA application.
 
-1.Install python3
-2.Install pip 
-3.Install flask
-4.Install AWSCLI 
+3. **OUTPUT**  
+   Requests data from both STOCKDATA and OUTLIER, then returns the data as a CSV attachment.
 
+---
 
-####  STEP 1: ####
+## TO RUN IN LOCAL
 
-Upload the files in standard s3 bucket 
+### PREREQUISITES
 
-FOLDER ALIGNMENT : `/EXCHANGENAME/STOCKID/**.CSV `
+Before running the application, ensure the following dependencies are installed:
 
-#### Execute the script ####
+1. Install **python3**
+2. Install **pip**
+3. Install **Flask**
+4. Install **AWSCLI**
 
-Scriptfile present in `/APP/stockdata/stockdatafiles/`
+---
 
-`stockdata.sh`
+### STEP 1: Upload Files to S3 Bucket
 
-Files will be downloaded to local folder 
+1. Upload the required CSV files to your S3 bucket with the following folder alignment:
 
+   ```
+   /EXCHANGENAME/STOCKID/**.CSV
+   ```
 
-### STEP 2 ###
+2. **Execute the script** to download the files:
 
-Ignore the step 1 if the files are going to be placed directly in local.
+   - The script is located in `/APP/stockdata/stockdatafiles/`.
+   - Execute the script `stockdata.sh` to download the files to your local folder.
 
-Update the base path (folder location) variable in `/APP/stockdata/app.py`
+---
 
-### STEP 3 ###
+### STEP 2: (Optional) Use Local Files
 
-Configure ENvironment variables 
+If the files are going to be placed directly in your local environment (i.e., skipping S3 upload), follow these steps:
 
-`export STOCKDATA_APP_URL="127.0.0.1:5000"`
+1. Update the base path (folder location) variable in `/APP/stockdata/app.py` to point to your local directory.
 
-`export OUTLIER_APP_URL="127.0.0.1:5001"`
+---
 
+### STEP 3: Configure Environment Variables
 
-TO run the application with command `CD` to each applications
+Set up the necessary environment variables by running the following commands:
 
-FOLDERS `/APP/stockdata/ ,/APP/outlier/ ,/APP/output/`
-
-Run the command `PYTHON3 app.py` ,update unique ports to `app.py `(currently all app ports are configured to 5000 )
-```
-### ENDPOINTS ###
-
-** Endpoint 1 : Retrieve 30 Days stock price **
-
-* OUTPUT application running in port 5003 *
-`
-http:127.0.0.1:5003/EXCHANGENAME/STOCKID/NOOFFILES/DATE
-ex: http:127.0.0.1:5003/NASDAQ/TSLA/5/01-09-2023
-`
-** Endpoint 2: Retrieve Outlier data **
-
-http:127.0.0.1:5003/EXCHANGENAME/STOCKID/outliers/NOOFFILES/DATE
-ex: http:127.0.0.1:5003/NASDAQ/TSLA/outliers/5/01-09-2023
+```bash
+export STOCKDATA_APP_URL="127.0.0.1:5000"
+export OUTLIER_APP_URL="127.0.0.1:5001"
 ```
 
---------------------------------------------------------------------------------------------
+---
 
-NOTE:
-1.CI pipeline is already implemented with github actions , pipeline files are present in `.github` folder
-2. (INPROGRESS) Container orchestrations is initiated using EKS. Deployment file present in `CONTAINERIZATION` folder .Cluster setup steps will be added later.
+## RUNNING THE APPLICATION
 
+To run the application, navigate to each application's folder and run the Python app:
 
+1. Change directory to each of the following folders:
+
+   - `/APP/stockdata/`
+   - `/APP/outlier/`
+   - `/APP/output/`
+
+2. Run the following command in each folder:
+
+   ```bash
+   python3 app.py
+   ```
+
+   **Note:** Ensure the ports are configured properly for each app. By default, all apps are set to use port 5000. You may need to update the ports in `app.py` files if they need to run on different ports.
+
+---
+
+## ENDPOINTS
+
+### 1. Retrieve 30 Days Stock Price
+
+- **Application**: OUTPUT (running on port 5003)  
+- **Endpoint**:  
+  `http://127.0.0.1:5003/EXCHANGENAME/STOCKID/NOOFFILES/DATE`
+
+  Example:  
+  `http://127.0.0.1:5003/NASDAQ/TSLA/5/01-09-2023`
+
+### 2. Retrieve Outlier Data
+
+- **Application**: OUTPUT (running on port 5003)  
+- **Endpoint**:  
+  `http://127.0.0.1:5003/EXCHANGENAME/STOCKID/outliers/NOOFFILES/DATE`
+
+  Example:  
+  `http://127.0.0.1:5003/NASDAQ/TSLA/outliers/5/01-09-2023`
+
+---
+
+## ADDITIONAL NOTES
+
+1. **CI Pipeline**  
+   A CI pipeline is already set up using GitHub Actions. The pipeline configuration files are located in the `.github` folder.
+
+2. **Container Orchestration (IN PROGRESS)**  
+   Container orchestration has been initiated using **Amazon EKS**. Deployment files can be found in the `CONTAINERIZATION` folder. Cluster setup steps will be added at a later stage.
+
+---
+
+```git 
