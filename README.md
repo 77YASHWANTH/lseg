@@ -1,100 +1,76 @@
-****STOCKDATAOUTLIER***
 
-# PREREQUISITES
+# INFO
+APPLICATIONS:
 
-1. Generate the AWS ACCESS KEY & ACCESS ID & UPDATE IN GITHUB -> ACTIONS -> SECRET
-2. Create Private ECR registry in AWS & UPDATE ECR_REGISTRY variable in github workflow files .github/workflows*.yml file
-3. Create Standard S3 Bucket in Aws
-4. Create kubernetes cluster 
-5. Install kubectl , eksctl cli
+1.STOCKDATA - Returns the parsed data from csv file in json format downloaded using ./stockdata.sh
+2.OUTLIER - Calculate & Returns the Standarddeviation,mean data in json format using the data returned from STOCKDATA application 
+3.OUTPUT - Requests the data from STOCKDATA & OUTLIER ,Returns the csv attachment
 
-# ENDPOINTS
-1. To get 30 days stock price
-http://LOADBALANCERURL/EXCHANGENAME/STOCKID/NOOFFILES/DATA - 
-EX: http://LOADBALANCERURL/NASDAQ/TSLA/19/05-10-2023
+### TO RUN IN LOCAL ###
 
-2. To get standard deviation/outliers
-.http://LOADBALANCERURL/EXCHANGENAME/STOCKID/outliers/NOOFFILES/DATA - 
-EX: http://LOADBALANCERURL/NASDAQ/outliers/TSLA/19/05-10-2023
+#### PREREQUISITES
+
+1.Install python3
+2.Install pip 
+3.Install flask
+4.Install AWSCLI 
 
 
-### SETUP EKS CLUSTER FOR APPLICATION DEPLOYMENTS ####
+####  STEP 1: ####
 
-# Create Cluster
-eksctl create cluster --name=stockdata \
-                      --region=us-east-1 \
-                      --zones=us-east-1a,us-east-1b \
-                      --without-nodegroup 
+Upload the files in standard s3 bucket 
 
-# Get List of clusters
+FOLDER ALIGNMENT : `/EXCHANGENAME/STOCKID/**.CSV `
+
+#### Execute the script ####
+
+Scriptfile present in `/APP/stockdata/stockdatafiles/`
+
+`stockdata.sh`
+
+Files will be downloaded to local folder 
+
+
+### STEP 2 ###
+
+Ignore the step 1 if the files are going to be placed directly in local.
+
+Update the base path (folder location) variable in `/APP/stockdata/app.py`
+
+### STEP 3 ###
+
+Configure ENvironment variables 
+
+`export STOCKDATA_APP_URL="127.0.0.1:5000"`
+
+`export OUTLIER_APP_URL="127.0.0.1:5001"`
+
+
+TO run the application with command `CD` to each applications
+
+FOLDERS `/APP/stockdata/ ,/APP/outlier/ ,/APP/output/`
+
+Run the command `PYTHON3 app.py` ,update unique ports to `app.py `(currently all app ports are configured to 5000 )
 ```
-eksctl get cluster     
-```
-# Connect with AWS OIDC FOR IRSA
+### ENDPOINTS ###
 
-```
-eksctl utils associate-iam-oidc-provider \
-    --region us-east-1 \
-    --cluster stockdata \
-    --approve
-```
-# Create Node Group
-```
-eksctl create nodegroup --cluster=stockdata \
-                        --region=us-east-1 \
-                        --name=stockdata-ng-public \
-                        --node-type=t3.medium \
-                        --nodes-min=1 \
-                        --nodes-max=2 \
-                        --node-volume-size=20 \
-                        --ssh-access \
-                        --ssh-public-key=yash \
-                        --managed \
-                        --asg-access \
-                        --full-ecr-access \
-                        --alb-ingress-access \                                         
-```
-# Update kubeconfig file 
+** Endpoint 1 : Retrieve 30 Days stock price **
 
-```
-aws eks update-kubeconfig --region us-east-1 --name stockdata
-```
+* OUTPUT application running in port 5003 *
+`
+http:127.0.0.1:5003/EXCHANGENAME/STOCKID/NOOFFILES/DATE
+ex: http:127.0.0.1:5003/NASDAQ/TSLA/5/01-09-2023
+`
+** Endpoint 2: Retrieve Outlier data **
 
-# IN KUBERNETES CLUSTER
-
-1.Update the S3 bucket name in stockdata/configmap.yaml
-2.Create AWS policy (AWS) providing s3:FullAccess , get the arn
-3.Create namespace
-``` kubectl create namespace stocks ```
-
-4.Create service account to access s3 in aws from stockdata pod
-```
-eksctl create iamserviceaccount \
-  --cluster=stockdata \
-  --namespace=stocks \
-  --name=s3-stockdata-access \
-  --attach-policy-arn=$policy_arn \
-  --override-existing-serviceaccounts \
-  --approve
-
-```
-eksctl create iamserviceaccount \
-  --cluster=stockdata \
-  --namespace=stocks \
-  --name=s3-stockdata-access \
-  --attach-policy-arn=arn:aws:iam::061051251404:policy/s3-stockprice-access \
-  --override-existing-serviceaccounts \
-  --approve
+http:127.0.0.1:5003/EXCHANGENAME/STOCKID/outliers/NOOFFILES/DATE
+ex: http:127.0.0.1:5003/NASDAQ/TSLA/outliers/5/01-09-2023
 ```
 
-5.Deploy the application 
+--------------------------------------------------------------------------------------------
 
-```
-cd CONTAINERIZATION/
+NOTE:
+1.CI pipeline is already implemented with github actions , pipeline files are present in `.github` folder
+2. (INPROGRESS) Container orchestrations is initiated using EKS. Deployment file present in `CONTAINERIZATION` folder 
 
-kubectl apply -f stockdata/
-kubectl apply -f outlier/
-kubectl apply -f output/
-
-```
 
