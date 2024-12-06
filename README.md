@@ -71,6 +71,6 @@ ex: http:127.0.0.1:5003/NASDAQ/TSLA/outliers/5/01-09-2023
 
 NOTE:
 1.CI pipeline is already implemented with github actions , pipeline files are present in `.github` folder
-2. (INPROGRESS) Container orchestrations is initiated using EKS. Deployment file present in `CONTAINERIZATION` folder 
+2. (INPROGRESS) Container orchestrations is initiated using EKS. Deployment file present in `CONTAINERIZATION` folder .Cluster setup steps will be added later.
 
 
