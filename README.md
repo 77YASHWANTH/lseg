@@ -6,7 +6,7 @@ Here’s an updated version of your `README.md` with the correct format and stru
 ## APPLICATIONS:
 
 1. **STOCKDATA**  
-   Parses data from a CSV file and returns it in JSON format. The CSV file is downloaded using `./stockdata.sh`.
+   Parses data from a CSV file and returns it in JSON format. The CSV file is downloaded using `./stockdata.sh`
 
 2. **OUTLIER**  
    Calculates and returns the standard deviation and mean data in JSON format using the data returned from the STOCKDATA application.
